@@ -107,3 +107,9 @@ uvicorn main:app --reload
 - Fotos y modo offline: columnas a NULL, no se programan, pero si da tiempo las dejo preparadas.
 - Material bloqueado por el admin: `activo = FALSE` (**comprobar si con esto el operario no lo ve)
 - Sin triggers en SQL: los cambios de estado y las reglas de stock las haré en la API.
+
+## 9. Referencias
+
+- seguridad.py - Autenticación por tokens JWT, contraseñas y comprobación de roles
+   Fuente: documentación oficial de FastAPI, "OAuth2 with Password (and hashing), Bearer with JWT tokens" https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+   Lo he adaptado: uso HTTPBearer en vez de OAuth2PasswordBearer, el login va con JSON y compruebo las contraseñas con bcrypt directamente.
