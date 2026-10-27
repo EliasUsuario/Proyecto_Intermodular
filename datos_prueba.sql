@@ -1,19 +1,15 @@
 
--- Ejecutar después de gestormaterial.sql
-
-TRUNCATE TABLE reservas, incidencias, prestamos, movimientos_consumible,
-               maquinas, consumibles, articulos, categorias, usuarios
-RESTART IDENTITY CASCADE;
-
-
+-- Alumno: Elías Martínez
+-- *IMPORTANTE:Ejecutar después de gestormaterial.sql
 
 -- USUARIOS (id 1, 2, 3)
 -- Contraseñas de prueba: admin1234 / laura1234 / pedro1234
+-- Los hashes los generé con generar_hash.py (carpeta backend), que usa bcrypt
 
-INSERT INTO usuarios (nombre, email, password, rol) VALUES
-    ('Admin Taller', 'admin@gestormaterial.com', 'admin1234', 'administrador'),
-    ('Laura Gómez', 'laura@gestormaterial.com', 'laura1234', 'operario'),
-    ('Pedro Ruiz', 'pedro@gestormaterial.com', 'pedro1234', 'operario');
+INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES
+    ('Admin Taller', 'admin@gestormaterial.com', '$2b$12$uzo7zMuw.AEso2vXAfURn.WOdoN16tmnswZm8AxsHHLvtasKIIigG', 'administrador'),
+    ('Laura Gómez',  'laura@gestormaterial.com', '$2b$12$eQ0LG3Sxxdu9cPEfrkp5t.NbutzoPfMvs0cWwJecJBZy/MlacdOaO', 'operario'),
+    ('Pedro Ruiz',   'pedro@gestormaterial.com', '$2b$12$ZqAi.9NOnYC5/28f84KqK.oEHj5DAVV6.RaY4DJEdIR15YwtGy2AK', 'operario');
 
 -- CATEGORIAS (id 1 a 5)
 INSERT INTO categorias (nombre) VALUES

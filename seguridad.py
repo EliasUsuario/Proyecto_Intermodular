@@ -1,5 +1,5 @@
 
-# seguridad.py - Autenticación por tokens JWT, contraseñas y comprobación de roles
+# seguridad.py - Autenticación por tokens JWT, contraseñas y comprobación de roles.
 
 # Fuente: documentación oficial de FastAPI, "OAuth2 with Password (and hashing), Bearer with JWT tokens" https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
 # Lo he adaptado: uso HTTPBearer en vez de OAuth2PasswordBearer, el login va con JSON y compruebo las contraseñas con bcrypt directamente.
@@ -19,12 +19,16 @@ SECRET_KEY = os.getenv("SECRET_KEY", "clave_secreta_de_clase")
 ALGORITMO = "HS256"  # el algoritmo que usamos en clase
 HORAS_TOKEN = 24  # el token dura un día y luego hay que volver a hacer login
 
+
 # esto le dice a FastAPI que el token viene en la cabecera "Authorization: Bearer <token>" y de paso sale el botón "Authorize" en /docs para probar
 esquema_bearer = HTTPBearer()
 
-def comprobar_password(password_plano: str, password_hash: str) -> bool:
+def comprobar_password(password_plano, password_hash):
     # compara la contraseña que escribe el usuario con el hash de la base de datos
-    return bcrypt.checkpw(password_plano.encode(), password_hash.encode())
+    # bcrypt trabaja con bytes, por eso el encode()
+    return bcrypt.checkpw(password_plano.encode('utf-8'), password_hash.encode('utf-8'))
+    # Se especifica utf-8 para que no falle con tildes o eñes
+
 
 def crear_token(id_usuario, nombre, rol):
     # datos que van dentro del token
@@ -34,8 +38,8 @@ def crear_token(id_usuario, nombre, rol):
         "rol": rol,
         "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=HORAS_TOKEN),  # cuándo caduca
     }
-    token = jwt.encode(datos, SECRET_KEY, algorithm=ALGORITMO)
-    return token
+    # firmo el token con la clave secreta y lo devuelvo
+    return jwt.encode(datos, SECRET_KEY, algorithm=ALGORITMO)
 
 
 def usuario_actual(credenciales: HTTPAuthorizationCredentials = Depends(esquema_bearer)):
@@ -51,10 +55,16 @@ def usuario_actual(credenciales: HTTPAuthorizationCredentials = Depends(esquema_
         }
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="El token ha caducado, vuelve a iniciar sesión")
+    except Exception as e:
+        print("Error al leer el token:", e)  # lo saco por consola para ver qué pasa
+        raise HTTPException(status_code=401, detail="Token no válido")
 
 
 def solo_admin(usuario=Depends(usuario_actual)):
-    pass  # TODO: comprobar que el rol del usuario es "admin" y si no, lanzar HTTPException 403
+    # igual que usuario_actual pero además comprueba que sea administrador
+    if usuario["rol"] != "administrador":
+        raise HTTPException(status_code=403, detail="Solo el administrador puede hacer esto")
+    return usuario
 
 # OJO: el token no comprueba si el usuario sigue activo en la BD, si bloqueo a alguien
 # puede seguir usando su token hasta que caduque.

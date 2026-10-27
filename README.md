@@ -108,8 +108,10 @@ uvicorn main:app --reload
 - Material bloqueado por el admin: `activo = FALSE` (**comprobar si con esto el operario no lo ve)
 - Sin triggers en SQL: los cambios de estado y las reglas de stock las haré en la API.
 
-## 9. Referencias
+## 9. Referencias (Fuentes consultadas el 27/10/2026):
 
 - seguridad.py - Autenticación por tokens JWT, contraseñas y comprobación de roles
    Fuente: documentación oficial de FastAPI, "OAuth2 with Password (and hashing), Bearer with JWT tokens" https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
    Lo he adaptado: uso HTTPBearer en vez de OAuth2PasswordBearer, el login va con JSON y compruebo las contraseñas con bcrypt directamente.
+   Se usa HTTPBearer en vez de OAuth2PasswordBearer, el login va con JSON y se comprueba las contraseñas con bcrypt directamente.
+- Librería bcrypt (hash y comprobación de contraseñas): https://pypi.org/project/bcrypt/ 
