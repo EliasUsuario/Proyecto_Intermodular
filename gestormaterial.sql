@@ -53,6 +53,7 @@ CREATE TABLE articulos (
     nombre VARCHAR(120) NOT NULL,
     descripcion	TEXT,
     id_categoria INT REFERENCES categorias(id_categoria),
+    ean VARCHAR(20) UNIQUE,
     tipo VARCHAR(15) NOT NULL,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     CONSTRAINT chk_articulos_tipo CHECK (tipo IN ('consumible', 'maquinaria'))

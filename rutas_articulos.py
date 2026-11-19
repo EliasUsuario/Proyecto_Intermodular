@@ -3,11 +3,11 @@
 # Alumno: Elías Martínez
 
 
-#   GET  /categorias         =   lista de categorías (cualquier usuario)
-#   GET  /articulos          =      lista del catálogo, con ?buscar= y ?tipo= (cualquier usuario)
-#   GET  /articulos/{id}    =   un artículo (cualquier usuario)
-#   POST /articulos         =   dar de alta un artículo (solo admin)
-#   PUT  /articulos/{id}    =   editar o bloquear un artículo (solo admin)
+#   GET/categorias      =   lista de categorías (cualquier usuario)
+#   GET/articulos       =   lista del catálogo, con ?buscar= y ?tipo= (cualquier usuario)
+#   GET/articulos/{id}  =   un artículo (cualquier usuario)
+#   POST/articulos      =   dar de alta un artículo (solo admin)
+#   PUT/articulos/{id}  =   editar o bloquear un artículo (solo admin)
 
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -19,6 +19,7 @@ router = APIRouter(tags=["Catálogo"])
 
 # esta consulta la uso en el listado y en el detalle, así no la escribo dos veces
 # el LEFT JOIN con consumibles es porque las máquinas no tienen fila en esa tabla
+#Sustituyo la concatenación de cadenas (str) por un parámetro (%s) para evitar inyecciones SQL.
 SQL_ARTICULOS = """
     SELECT a.id_articulo, a.nombre, a.descripcion, a.id_categoria,
            c.nombre AS categoria, a.ean, a.tipo, a.activo,
@@ -34,6 +35,7 @@ class ArticuloNuevo(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
     id_categoria: Optional[int] = None
+    ean: Optional[str] = None
     tipo: str  # 'consumible' o 'maquinaria'
      # estos campos solo se usan si es consumible
     codigo_qr: Optional[str] = None
@@ -143,6 +145,14 @@ def crear_articulo(datos: ArticuloNuevo, usuario=Depends(solo_admin)):
             if cur.fetchone() is None:
                 raise HTTPException(status_code=400, detail="La categoría no existe")
 
+        # el EAN vacío se guarda como NULL (si no, dos artículos sin EAN chocarían por el UNIQUE)
+        ean = (datos.ean or "").strip() or None
+        # compruebo que el EAN no esté repetido (en la tabla es UNIQUE)
+        if ean is not None:
+            cur.execute("SELECT 1 FROM articulos WHERE ean = %s", (ean,))
+            if cur.fetchone() is not None:
+                raise HTTPException(status_code=400, detail="Ya existe un artículo con ese EAN")
+
         # compruebo que el QR no esté repetido
         if datos.tipo == "consumible":
             cur.execute("SELECT 1 FROM consumibles WHERE codigo_qr = %s", (datos.codigo_qr,))
@@ -153,7 +163,7 @@ def crear_articulo(datos: ArticuloNuevo, usuario=Depends(solo_admin)):
         cur.execute(
             """INSERT INTO articulos (nombre, descripcion, id_categoria, ean, tipo)
                VALUES (%s, %s, %s, %s, %s) RETURNING id_articulo""",
-            (datos.nombre, datos.descripcion, datos.id_categoria, datos.ean, datos.tipo),
+            (datos.nombre, datos.descripcion, datos.id_categoria, ean, datos.tipo),
         )
         aux = cur.fetchone()
         nuevo_id = aux["id_articulo"]
@@ -178,7 +188,7 @@ def crear_articulo(datos: ArticuloNuevo, usuario=Depends(solo_admin)):
     finally:
         conn.close()
 
-# *A TENER EN CUENTA: las unidades de maquinaria (tabla maquinas) se crean en el siguiente paso, con POST /maquinas
+# *A TENER EN CUENTA: las unidades de maquinaria (tabla maquinas) se crean con POST /maquinas (en rutas_maquinas.py)
 
 
 @router.put("/articulos/{id_articulo}")
@@ -199,12 +209,19 @@ def editar_articulo(id_articulo: int, datos: ArticuloEditar, usuario=Depends(sol
             if cur.fetchone() is None:
                 raise HTTPException(status_code=400, detail="La categoría no existe")
 
+        # el EAN vacío se guarda como NULL y no puede coincidir con el de OTRO artículo
+        ean = (datos.ean or "").strip() or None
+        if ean is not None:
+            cur.execute("SELECT 1 FROM articulos WHERE ean = %s AND id_articulo <> %s", (ean, id_articulo))
+            if cur.fetchone() is not None:
+                raise HTTPException(status_code=400, detail="Ya existe otro artículo con ese EAN")
+
         # actualizo los datos generales
         cur.execute(
             """UPDATE articulos
                SET nombre = %s, descripcion = %s, id_categoria = %s, ean = %s, activo = %s
                WHERE id_articulo = %s""",
-            (datos.nombre, datos.descripcion, datos.id_categoria, datos.ean, datos.activo, id_articulo),
+            (datos.nombre, datos.descripcion, datos.id_categoria, ean, datos.activo, id_articulo),
         )
 
         # si es consumible y han mandado stock_minimo, lo actualizo también

@@ -2,6 +2,16 @@
 -- Alumno: Elías Martínez
 -- *IMPORTANTE:Ejecutar después de gestormaterial.sql
 
+
+-- Vacío las tablas y reinicio los ids para que siempre salgan los mismos (1, 2, 3...)
+-- *A TENER EN CUENTA: los INSERT de abajo usan esos ids a mano, si cambio el orden de los INSERT hay que revisar todos los números.
+
+TRUNCATE TABLE reservas, incidencias, prestamos, movimientos_consumible,
+               maquinas, consumibles, articulos, categorias, usuarios
+RESTART IDENTITY CASCADE;
+
+
+
 -- USUARIOS (id 1, 2, 3)
 -- Contraseñas de prueba: admin1234 / laura1234 / pedro1234
 -- Los hashes los generé con generar_hash.py (carpeta backend), que usa bcrypt
@@ -23,29 +33,29 @@ INSERT INTO categorias (nombre) VALUES
 
 -- ARTICULOS (id 1 a 7): los 4 primeros son consumibles y los 3 últimos maquinas
 
-INSERT INTO articulos (nombre, descripcion, id_categoria, tipo) VALUES
-    ('Cable 2,5 mm', 'Cable de cobre para instalaciones', 1, 'consumible'),  --id 1
-    ('Conector', 'Conector de red', 2, 'consumible'),  -- 2
-    ('Tornillo M4 x 20', 'Tornillo de metrica 4', 3, 'consumible'),  -- 3
-    ('Terminal', 'Terminal para cable', 2, 'consumible'),  -- 4
-    ('Taladro percutor', 'Taladro con percusión', 4, 'maquinaria'),  -- 5
-    ('Multímetro', 'Medidor de voltage y amperaje', 5, 'maquinaria'),  -- 6
-    ('Soldador de estaño', 'Soldador estaño', 4, 'maquinaria');  -- 7
+INSERT INTO articulos (nombre, descripcion, id_categoria, tipo, ean) VALUES
+    ('Cable 2,5 mm', 'Cable de cobre para instalaciones', 1, 'consumible', '8400000000001'),  --id 1
+    ('Conector', 'Conector de red', 2, 'consumible', '8400000000002'),  -- 2
+    ('Tornillo M4 x 20', 'Tornillo de metrica 4', 3, 'consumible', '8400000000003'),  -- 3
+    ('Terminal', 'Terminal para cable', 2, 'consumible', '8400000000004'),  -- 4
+    ('Taladro percutor', 'Taladro con percusión', 4, 'maquinaria', '8400000000005'),  -- 5
+    ('Multímetro', 'Medidor de voltage y amperaje', 5, 'maquinaria', '8400000000006'),  -- 6
+    ('Soldador de estaño', 'Soldador estaño', 4, 'maquinaria', NULL);  -- 7
 
 -- CONSUMIBLES (el id es el mismo que el del artículo)
 -- El artículo 3 tiene 50 reservados para una obra (se ve en tabla de reservas que está más abajo).
 
-INSERT INTO consumibles (id_articulo, codigo_qr, unidad_medida, stock_actual, stock_reservado) VALUES
-    (1, 'CON-0001', 'm', 120, 0),
-    (2, 'CON-0002', 'uds', 80, 0),
-    (3, 'CON-0003', 'uds', 500, 50),
-    (4, 'CON-0004', 'uds', 12, 0);
+INSERT INTO consumibles (id_articulo, codigo_qr, unidad_medida, stock_actual, stock_minimo, stock_reservado) VALUES
+    (1, 'CON-0001', 'm', 120, 30, 0),
+    (2, 'CON-0002', 'uds', 80, 20, 0),
+    (3, 'CON-0003', 'uds', 500, 100, 50),
+    (4, 'CON-0004', 'uds', 12, 15, 0);
 
 
 
 -- MAQUINAS (id 1 a 5)
 -- Para probar todos los estados:
---   1 disponible, 2 en_uso (la tiene Laura), 3 en_mantenimiento (incidencia abierta), 4 disponible, 5 reservada (obra futura)
+-- 1 disponible, 2 en_uso (la tiene Laura), 3 en_mantenimiento (incidencia abierta), 4 disponible, 5 reservada (obra futura)
 
 INSERT INTO maquinas (id_articulo, numero_serie, codigo_qr, estado) VALUES
     (5, 'TAL-XXXX-001', 'MAQ-0001', 'disponible'), -- 1

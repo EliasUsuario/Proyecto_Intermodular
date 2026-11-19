@@ -115,3 +115,4 @@ uvicorn main:app --reload
    Lo he adaptado: uso HTTPBearer en vez de OAuth2PasswordBearer, el login va con JSON y compruebo las contraseñas con bcrypt directamente.
    Se usa HTTPBearer en vez de OAuth2PasswordBearer, el login va con JSON y se comprueba las contraseñas con bcrypt directamente.
 - Librería bcrypt (hash y comprobación de contraseñas): https://pypi.org/project/bcrypt/ 
+- Códigos de estado de respuesta HTTP: https://developer.mozilla.org/es/docs/Web/HTTP/Reference/Status

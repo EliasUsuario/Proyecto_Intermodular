@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import rutas_articulos # fichero con el catálogo
 import rutas_conexion # fichero con el login
 import rutas_consumibles
+import rutas_maquinas  # fichero con la maquinaria y los préstamos
+import rutas_incidencias  # fichero con las incidencias
 
 # Se crea la aplicación
 app = FastAPI(title="GestorMaterial API")
@@ -24,6 +26,8 @@ app.add_middleware(
 app.include_router(rutas_articulos.router)
 app.include_router(rutas_conexion.router)
 app.include_router(rutas_consumibles.router)
+app.include_router(rutas_maquinas.router)
+app.include_router(rutas_incidencias.router)
 
 #* A TENER EN CUENTA: según vaya haciendo cosas nuevas hay que añadir aquí su router
 

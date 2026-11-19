@@ -1,8 +1,11 @@
 
 # seguridad.py - Autenticación por tokens JWT, contraseñas y comprobación de roles.
 
-# Fuente: documentación oficial de FastAPI, "OAuth2 with Password (and hashing), Bearer with JWT tokens" https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
-# Lo he adaptado: uso HTTPBearer en vez de OAuth2PasswordBearer, el login va con JSON y compruebo las contraseñas con bcrypt directamente.
+# Fuentes (consultadas el 27/10/2026):
+# - Documentación oficial de FastAPI, "OAuth2 with Password (and hashing),
+#   Bearer with JWT tokens": https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+#   Se usa HTTPBearer en vez de OAuth2PasswordBearer, el login va con JSON y se comprueba las contraseñas con bcrypt directamente.
+# - Librería bcrypt (hash y comprobación de contraseñas): https://pypi.org/project/bcrypt/ 
 
 import os
 import datetime  # para poner la fecha de caducidad al token
@@ -66,6 +69,5 @@ def solo_admin(usuario=Depends(usuario_actual)):
         raise HTTPException(status_code=403, detail="Solo el administrador puede hacer esto")
     return usuario
 
-# OJO: el token no comprueba si el usuario sigue activo en la BD, si bloqueo a alguien
-# puede seguir usando su token hasta que caduque.
-# TODO: mirar si se arregla consultando la BD en usuario_actual
+# *A TENER EN CUENTA: el token no comprueba si el usuario sigue activo en la BD, si bloqueo a alguien puede seguir usando su token hasta que caduque.
+# *COMPROBAR: mirar si se arregla consultando la BD en usuario_actual
