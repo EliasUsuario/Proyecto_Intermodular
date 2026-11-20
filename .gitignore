@@ -9,3 +9,6 @@ __pycache__/
 
 #Datos sensibles
 .env
+
+node_modules/
+.expo/
